@@ -1,0 +1,191 @@
+---
+title: "Midterm STAT5860"
+name: Alvaro Serrano Rivas
+output:
+  word_document: default
+  html_notebook: default
+  pdf_document: default
+---
+## MIDTERM EXAM - STAT 5860
+#### Alvaro Serrano Rivas
+
+## **Instructions**
+
+1. Write your code to each question in R script file. The answers should be correctly ordered.
+2. When the question is asking more than just writing an R code, write your answer to each question
+in Word document. In addition, if the question is asking you for the visualization, copy and paste
+your plots (or figures) to the Word document. The answer should be correctly ordered.
+3. After you finish all the problems, upload both your R script file and Word document to Midterm
+Exam Dropbox in the course Elearning.
+4. You may also use R Markdown. If you are using R Markdown then submit both .rmd (R Markdown
+file) and knitted word document or pdf file.
+
+
+Problem 1. Dr. Lee wants to check the mean of a chi-squared distribution with 4 degrees of freedom is 4.
+The chi-squared distribution with 4 degrees of freedom has density function
+
+1. (20 pts) Use the rejection sampling to generate a random sample of size 10,000 from the chisquared distribution with 4 degrees of freedom. Find the Monte Carlo estimate of Ef (X) from
+the generated sample.
+(Hint: Use the log-normal distribution (meanlog = 0, sdlog = 2) as proposal distribution. To
+calculate the log-normal density, use dlnorm(x, meanlog, sdlog). To generate sample from the
+log-normal density, use rlnorm(n, meanlog, sdlog).)
+
+```{r}
+n <- 10000
+f_x <- function(x){
+  (1/4)*x*exp(-x/2)
+}
+g_x <- function(x){
+  dlnorm(x, meanlog = 0, sdlog = 2)
+}
+a <- seq(0, 10)
+plot(a, f_x(a)/g_x(a), type = "l", ylim = c(0, 4))
+abline(h=3.60, col = "red")
+```
+
+```{r}
+set.seed(210)
+n <- 10000
+k <- 0
+j <- 0
+x <- rep(0,n)
+while(k < n){
+  y <- rlnorm(n,0,2) 
+  u <- runif(1)
+  j <- j + 1
+  if (u< (1/4)*y*exp(-y/2)/(3.6*dlnorm(y, meanlog=0,sdlog=2))) {
+    k <- k + 1
+    x[k] <- y
+  }
+}
+#montecarlo estimate 
+mean(x)
+```
+[1] 4.080551
+
+```{r}
+f_x <- function(x){
+  (1/4)*x*exp(-x/2)
+}
+x <- seq(-6, 6, 0.01)
+plot(x, f_x(x), type ="l", xlab = "", ylab = "") 
+
+n <- 10000
+x <- rlnorm(n, mean = 0, sd = 2) 
+
+mean(x*f_x(x)/dlnorm(x, mean = 0, sd = 2))
+
+# Draw a plot to show the convergence of the importance sampling approximation
+plot(cumsum(x*f_x(x)/dlnorm(x, mean = 0, sd = 2))/1:n, type = "l", ylab ="")
+abline(h = 4.080551, col = "red")
+```
+
+
+2. (20 pts) This time use the importance sampling to estimate the mean of the chi-squared distribution with 4 degrees of freedom. In other words, find the Monte Carlo estimate of Ef (X) directly
+using the importance sampling. Also, draw a plot to show the convergence of the importance
+sampling approximation.
+(Hint: Use the log-normal distribution (meanlog = 0, sdlog = 2) as importance function. To
+calculate the log-normal density, use dlnorm(x, meanlog, sdlog). To generate sample from the
+log-normal density, use rlnorm(n, meanlog, sdlog).)
+
+```{r}
+n <- 10000
+a<- seq(0, 10, .01)
+plot(a, f_x(a), type = "l")
+```
+
+```{r}
+n <- 10000
+y <- rlnorm(n, meanlog = 0, sdlog = 2)
+theta <- mean(y*f_x(y)/dlnorm(y, meanlog = 0, sdlog = 2))
+theta
+```
+
+Problem 2. Dr. Lee wants to generate random sample from t distribution with ν = 4 degrees of freedom.
+However, he doesn’t remember the full probability density function (pdf) of the t distribution. Luckily,
+he remembers the pdf of the t distribution up to some constant and he knows we can still use the
+Metropolis algorithm although we only know the t distribution up to some constant.
+
+1. (20 pts) Use the Metropolis algorithm to generate a random sample of size 10,000 from the t
+distribution with ν = 4 degrees of freedom. Compute the sample percentiles and compare with
+the t distrbution (ν = 4) percentiles.
+(Hint: Use qt(p, ν) to find t distribution percentiles.)
+
+```{r}
+n <- 10000
+f <- function(x, v){(1+x^2/v)^(-(v+1)/2)}
+q <- function(mean){rnorm(1, mean = mean, sd = 10)}
+x <- rep(0, n)
+x[1] = 2
+for(i in 1:(n-1)){
+  xnew <- q(mean = x[i])
+  if(runif(1) < f(xnew, v = 4)/f(x[i], v = 4)){
+    x[i + 1] <- xnew
+  }else{
+    x[i + 1] <- x[i]
+  }
+}
+```
+
+```{r}
+p <- seq(0.1, 0.9, 0.01)
+Qhat <- quantile(x, p)
+Q <- qt(p, df = 4)
+plot(Q, Qhat)
+```
+
+Problem 3. Dr. Lee wants to generate a simulation result of rolling a dice 10,000 times and find relative
+frequency for each outcome. The probability mass function (pmf) is given below.
+1. (20 pts) Use either Metropolis algorithm or inverse transform method to simulate result of rolling
+a dice 10,000 times. In addition, obtain the relative frequency for each outcome and compare
+with the theoretical probabilities given in the pmf table.
+```{r}
+S <- seq(1, 6)
+pmf <- rep(1/6, 6)
+n <- 10000
+X <- rep(0, n)
+Q <- matrix(rep(1/6, 36), nrow = 6, ncol = 6, byrow = TRUE)
+x[i] = 2
+for (i in 1:(n-1)){
+  new <- sample(S, 1, prob = Q[which(S == x[i]), ])
+  u <- runif(1)
+  if(u < pmf[which(S == new)]/pmf[which(S == x[i])]){
+    x[i+1] <- new
+  }else{
+    x[i+1] <- x[i]
+  }
+}
+table(x)
+table(x)/n
+```
+
+Problem 4. State which of the following statements is TRUE and which is FALSE
+
+1. (2 pts) Monte Carlo methods can be used to solve integral problems.
+True. Integral problems are deterministic by natures
+
+2. (3 pts) Inverse transform method can always be used to generate discrete random variable when
+we know probability mass function (pmf).
+True. The inverse transform method can be used to generate random samples from any probability distribution by using its inverse cdf F^-1(x) where F(x) = P(X <= x)
+
+3. (2 pts) When we use a rejection sampling, the proposal distribution must have the same range
+(or support) as the target distribution.
+True. The rejection sampling method generates sampling values from a target distribution X with arbitrary pdf f(x) by using a proposal distribution Y with probability density g(x). Our goal is to generate a sample value from X by instead sampling from Y and accepting the sample from Y with probability f(x)/(Mg(x)), repeating the draws from Y until a value is accepted. M here is a constant, finite bound on the likelihood ratio f(x)/g(x), satisfying 1<M<infinity over the support of X; Therefore, M must satisfy f(x) <= Mg(x) for all values of x. This requires that the support of Y must include the support of X such that g(x) > 0 whenever f(x) >0
+
+4. (3 pts) When we use a rejection sampling to generate a random sample of 10,000, we need more
+than 10,000 iterations.
+True. In order to get a random sample of 10000 we need to iterate more than 10000 times because some of the values will be rejected.
+
+5. (2 pts) Importance sampling can be used to calculate the probability of continuous random variable.
+False. This method allows us to see an integration problem as an expected value problem by considering other weight functions than uniform.  In the naive Monte Carlo approach, estimates in the tails of the distribution are less precise. In this case, the average must be a weighted average rather than the unweighted sample mean, to correct for this bias.
+
+6. (3 pts) The main goal of importance sampling is to generate sample from target distribution.
+False. The goal is to find an expected value from a proposal distribution from which it is easy to draw samples. We can then express the expectation in the form of a finite sum over samples drawn from that proposal distribution.
+
+7. (2 pts) When we use a Metropolis algorithm we can only use proposal distribution that is symmetric.
+True.The Metropolis algorithm is a special case of the Metropolis-Hasting algorithm where the proposal is symmetric
+
+8. (3 pts) If we wish to obtain independent samples from MCMC, we start to collect samples after
+the burn-in period.
+True. MCMC relies on building a Markov chain from a stationary distribution that we start at some initial value. Once the effect of the initial condition has dissipated we will be sampling from the same distribution no matter the starting point. Therefore, at that point we should be able to regard the samples as observations from the target distribution. This means that all decisions about  starting points are based on the output of some preliminary runs that appear to have converged to the stationary distribution.
+

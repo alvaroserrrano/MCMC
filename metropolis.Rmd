@@ -1,0 +1,110 @@
+---
+title: "Homework 4"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+## **Instructions**
+
+1. Write your code to each question in R script file. The answers should be correctly
+ordered.
+2. When the question is asking more than just writing an R code, write your answer to
+each question in Word document. In addition, if the question is asking you for the
+visualization, copy and paste your plots (or figures) to the Word document. The answer
+should be correctly ordered.
+3. After you finish all the problems, upload both your R script file and Word document to
+Homework 1 Dropbox in the course Elearning.
+
+
+```{r}
+set.seed(318)
+```
+
+**Problem 1** Let X = the number of heads obtained from flipping a fair coin 4 times. Here, we have that there 4 trials, "success" is defined as getting a head face-up with probability 0.5 for each trial, and the outcome of one trial doesn't affect another.
+
+1 . Find the Probability Mass Function (pmf) table for random variable X. (Hint: X follows a binomial random variable. You may use dbinom() function to find corresponding probability for each outcome).
+
+```{r}
+S <- seq(0, 4)
+pmf <- c (dbinom(S, 4, 0.5))
+table(pmf, S)
+```
+
+2. Use the Metropolis algorithm to simulate X, 50000 times.
+```{r}
+n <- 50000
+x <- rep(0, n)
+Q <- matrix(c(.25, .1875, .1875, .1875, .1875, .1875, .25, .1875,.1875,.1875, .1875, .1875, .25, .1875,.1875,.1875,.1875,.1875,.25, .1875, .1875, .1875, .1875, .1875,.25), nrow=5, ncol=5, byrow = TRUE)
+x[1] <- 2
+for(i in 1:(n-1)){
+	# pick new sample
+	xnew <- sample(S, 1, prob = Q[which(S == x[i]), ])
+	# acceptance condition
+	u <- runif(1)
+	if (u < pmf[which(S == xnew)]/pmf[which(S == x[i])]){
+		x[i+1] <- xnew
+	}
+	else{
+		x[i+1] <- x[i]
+	}
+}
+
+table(x)
+table(x)/n
+```
+
+3. Find the Monte Carlo estimate of E(X)
+
+```{r}
+mean(x)
+```
+
+4. Find the Monte Carlo estimate of Var(X)
+```{r}
+sd(x)^2
+var_x = mean(x^2)-mean(x)^2 
+var_x
+```
+
+**Problem 2** The Cauchy distribution with location l and scale s has density function
+f(x) = 1 / (π s (1 + ((x-l)/s)^2))
+
+1. Use the Metropolis algorithm to generate a random sample size of 10000 from the Cauchy distribution (s=2, l=0). Hint: Use normal distribution with a mean value at the current sample and a standard deviation of 10 as a proposal distribution
+```{r}
+set.seed(318)
+n2 <- 10000
+x2 <- rep(0, n2)
+f_x <- function(x){
+  dcauchy(x, location = 0, scale = 2)
+}
+q <- function(x){
+	rnorm(1, x, 10)
+}
+x2[1] = 2
+for(i in 1:(n2-1)){
+	xnew <- q(x2[i])
+	u <- runif(1)
+	if (u < f_x(xnew)/f_x(x2[i])){
+		x2[i+1] <- xnew
+	}
+	else{
+		x2[i+1] <- x2[i]
+	}
+}
+
+hist(x2, prob = TRUE, ylim=c(0,.15))
+y <- seq(-20, 20, 1)
+lines(y, f_x(y), col = "red")
+
+mean(x)
+```
+
+2. Compute the sample percentiles and compare with the Cauchy distribution(scale = 2, location = 0) percentiles. Does the sample we generated follow the Cauchy distribution?
+
+```{r}
+p <- c(.10, .25, .5, .75, .90)
+percentiles <- qcauchy(p, location = 0 ,scale=2, log.p = FALSE)
+table(percentiles, p)
+```
+

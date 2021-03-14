@@ -1,0 +1,79 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+  pdf_document: default
+name: Alvaro Serrano Rivas
+---
+
+**Instructions**:
+1. Write your code to each question in R script file. The answers should be correctly ordered.
+2. When the question is asking more than just writing an R code, write your answer to each question in Word document. In addition, if the question is asking you for the visualization, copy and paste your plots (or figures) to the Word document. The answer should be correctly ordered.
+3. After you finish all the problems, upload both your R script file and Word document to Homework 5 Dropbox in the course Elearning.
+
+```{r}
+set.seed(318)
+```
+
+Problem 1. The Rayleigh distribution is used to model lifetime subject to rapid aging, because the hazard rate is linearly increasing. The Rayleigh density is
+
+```{r}
+f_x <- function(x, sigma){
+  (x/sigma^2)*exp(-x^2/(2*sigma^2))
+}
+y <- seq(0, 12, 0.01)
+plot(y, f_x(y, 2), type = "l", col = "red", xlab = "", ylab = "")
+```
+
+
+1. Use the Metropolis-Hastings algorithm to generate a random sample of size 10000 from the Rayleigh (σ = 2) distribution. Use the proposal distribution Gamma(Xt, 1) (shape parameter Xt and rate parameter 1). (Hint: Use rgamma() and dgamma())
+
+```{r}
+y <- seq(0, 12, 0.01)
+plot(y, dgamma(y, shape=y, rate = 1), type = "l", col = "red", xlab = "", ylab = "")
+
+```
+```{r}
+#the function sampling new point from the proposal distribution
+q <- function(n, shape, rate){
+  rgamma(n, shape = shape, rate = rate)
+}
+
+# the function evaluating the proposal function density
+q_x <- function(x_t, shape, rate ){
+  dgamma(x_t, shape = shape, rate = rate)
+}
+
+
+n <- 10000
+x <- rep(0, n)
+
+# initial value
+x[1] <- 2
+
+for(i in 1:(n-1)){
+  # pick new sample
+  xnew <- q(1, shape = x[i], rate = 1)
+  # acceptance condition
+  u <- runif(1)
+  if (u < (f_x(xnew, sigma = 2) * q_x(x[i], shape = x[i], rate = 1))/(f_x(x[i], sigma = 2)*q_x(xnew, shape = xnew, rate = 1))){
+    x[i+1] <- xnew
+  }
+  else{
+    x[i+1] <- x[i]
+  }
+}
+
+```
+
+
+2. Plot the density histogram of the sample and add the theoretical density curve f(x) to
+the density histogram.
+
+```{r}
+hist(x, prob = TRUE, ylim = c(0, .5))
+y <- seq(0, 15, 0.01)
+lines(y, f_x(y, 2), col = "red")
+```
+

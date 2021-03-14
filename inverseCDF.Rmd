@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+  html_notebook: default
+---
+
+## **Instructions**
+
+1. Write your code to each question in R script file. The answers should be correctly
+ordered.
+2. When the question is asking more than just writing an R code, write your answer to
+each question in Word document. In addition, if the question is asking you for the
+visualization, copy and paste your plots (or figures) to the Word document. The answer
+should be correctly ordered.
+3. After you finish all the problems, upload both your R script file and Word document to
+Homework 1 Dropbox in the course Elearning.
+
+Use set.seed(210) at the beginning of Problem 1 and Problem 2.
+
+**Problem 1**. The Pareto distribution has been used in economics as a model for a density function
+with a slowly decaying tail. The Pareto(a,b) distribution has pdf:
+
+$$ f(x; a, b) = \frac{a b^a}{x^{a + 1}}, \; b > 0, \; a > 0, \; x \ge b $$
+
+1. Use the inverse transform method to generate a random sample of size 1000 from the
+Pareto(3,2) distribution.
+2. Plot the density histogram of the sample.
+3. Add the theoretical density curve f (x) to the density histogram.
+
+First, we find the CDF from the pdf given.
+F(x) = P(X <= x) = $$F(x) = \int_0^x\frac{ab^a}{t^{a+1}}dt=-b^ax^{-a}$$
+
+For the Pareto(3, 2) distribution we have
+$$ f(x; 3, 2) = \frac{3 * 2^3}{x^{3+1}} = \frac{24}{x^{4}}, x \gt 2$$
+$$F(x) =  \frac{-8}{x^3}$$
+
+Next, we find the inverse
+$$F^{-1}(u) = \frac{-2u^{2/3}}{u}$$
+
+```{r}
+set.seed(210)
+n <- 1000
+u <- runif(n)
+x <- (-2*u^(2/3))/(u)
+hist(x, prob = T, xlab = "x", main = "Pareto(3,2)", freq = F)
+y <- seq(0, 1, 0.01)
+lines(y, 24/y^4)
+#curve(24/(x^4), col = "red", add = T)
+```
+
+4. Write your own rpareto function that simulates random numbers having a Pareto distribution with specified parameters. (Hint: rpareto function requires three arguments;sample size, shape parameter, and scale parameter.)
+```{r}
+rpareto <- function(size, shape, scale){
+  set.seed(210)
+  x <- vector(length=size)
+  u <- runif(size)
+  x <- (-scale*u^(scale/shape))/(u)
+  return(x)
+}
+```
+
+5. Use your rpareto function to generate a random sample of size 1000 from the Pareto(2,1)
+distribution and find a sample mean.
+```{r}
+sample <- rpareto(1000, 2, 1)
+sum(sample)/length(sample)
+mean(sample)
+```
+
+
+
+

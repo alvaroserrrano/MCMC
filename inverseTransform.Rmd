@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+  html_notebook: default
+---
+
+## **Instructions**
+
+1. Write your code to each question in R script file. The answers should be correctly
+ordered.
+2. When the question is asking more than just writing an R code, write your answer to
+each question in Word document. In addition, if the question is asking you for the
+visualization, copy and paste your plots (or figures) to the Word document. The answer
+should be correctly ordered.
+3. After you finish all the problems, upload both your R script file and Word document to
+Homework 1 Dropbox in the course Elearning.
+
+Use set.seed(210) at the beginning of Problem 1 and Problem 2.
+
+**Problem 1**. A discrete random variable X has probability mass function (pmf)
+
+| x      | 0     | 1     | 2     | 3     |
+| ------ | ------|------ | ------|------ |  
+| P(X=x) | 0.064 | 0.288 | 0.432 | 0.216 |
+
+1. Use the inverse transform method to generate a random sample of size 1000 from the distribution of X.
+
+```{r}
+set.seed(210)
+n <- 1000
+x <- rep(0, n)
+u <- runif(n)
+F_x = c(0.064, 0.288, 0.432, 0.216)
+for (i in 1:n){
+  if (u[i] <= F_x[1]){
+    x[i] <- 0
+  }
+  else if (F_x[1] < u[i] & u[i] <= (F_x[1] + F_x[2])){
+    x[i] <- 1
+  }
+  else if ((F_x[1] + F_x[2]) < u[i] & u[i] <= (F_x[1] + F_x[2] + F_x[3])){
+    x[i] <- 2
+  }
+  else if ((F_x[1] + F_x[2] + F_x[3]) < u[i] & u[i] <= 1){
+    x[i] <- 3
+  }
+}
+table(x)
+mean(x)
+```
+
+2. Calculate relative frequency for each x and compare with the theoretical probabilities given in the pmf table. For example, to find the relative frequency for 0, count how many times 0 appeared and divide by the sample size 1000
+
+```{r}
+table(x)/length(x)
+```
